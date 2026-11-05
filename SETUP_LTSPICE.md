@@ -49,7 +49,7 @@ LTspice_Workspace/
 │           ├── flyback_top.asc
 │           └── flyback_top.plt
 │
-├── src/ltspice/                       # Outillage d'automatisation Python (uv)
+├── _Tools/ltspice/                    # Outillage d'automatisation Python (uv)
 └── .agents/                           # Directives IA, règles, compétences et workflows
 ```
 

@@ -34,7 +34,7 @@ LTspice_Workspace/
 │   │       └── stimuli/               # Fichiers sources (PWL, WAV)
 │   └── ...
 │
-├── src/ltspice/                       # Package d'automatisation Python (uv)
+├── _Tools/ltspice/                    # Package d'automatisation Python (uv)
 │   ├── __init__.py
 │   ├── runner.py                      # Exécuteur headless & détection logs _Build_Temp
 │   └── log_parser.py                  # Parser de logs (*.log, .meas extraction)
@@ -73,7 +73,7 @@ Plutôt que d'utiliser des chemins absolus dans chaque schéma, LTspice doit êt
 
 ---
 
-## 5. Outillage Python (`src/ltspice/`)
+## 5. Outillage Python (`_Tools/ltspice/`)
 
 - Géré exclusivement avec `uv`.
-- [`runner.py`](../../src/ltspice/runner.py) recherche automatiquement les fichiers `.log` générés soit localement à côté du `.asc`, soit dans `_Build_Temp/` si la redirection est activée.
+- [`runner.py`](../../_Tools/ltspice/runner.py) recherche automatiquement les fichiers `.log` générés soit localement à côté du `.asc`, soit dans `_Build_Temp/` si la redirection est activée.

@@ -34,7 +34,7 @@ LTspice_Workspace/
 │   │       └── stimuli/               # Fichiers d'excitation (ex: signaux PWL, .wav)
 │   └── ...
 │
-├── src/ltspice/                       # Package d'automatisation Python (géré avec uv)
+├── _Tools/ltspice/                    # Package d'automatisation Python (géré avec uv)
 │   ├── __init__.py                    # Exports du package
 │   ├── runner.py                      # Exécuteur headless & détection automatique _Build_Temp
 │   └── log_parser.py                  # Parser de logs (*.log, extraction .meas, erreurs)

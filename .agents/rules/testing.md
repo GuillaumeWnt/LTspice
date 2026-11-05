@@ -44,7 +44,7 @@ When a simulation fails or halts prematurely, inspect the generated `.log` file 
      Measurement: vout_ripple
        step 1:  0.02451  FROM 2.5e-03 TO 3e-03
      ```
-   - Use `src/ltspice/log_parser.py` (or `uv run ltspice-run`) to parse these lines directly into structured dictionaries or pandas DataFrames.
+   - Use `_Tools/ltspice/log_parser.py` (or `uv run ltspice-run`) to parse these lines directly into structured dictionaries or pandas DataFrames.
 
 ---
 

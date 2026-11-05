@@ -12,7 +12,7 @@
    - All circuit subprojects reside in the dedicated directory `Projets/<project-name>/` (with `sim/`, `docs/`, `sim/blocks/`).
    - Shared third-party SPICE models (`.lib`, `.sub`, `.mod`), custom vendor symbols (`.asy`), and shared graphical hierarchical blocks (`.asc` + `.asy`) reside exclusively in `_Shared_Lib/` (`sym/`, `models/`, `common_blocks/`).
    - Heavy simulation generated outputs (`*.raw`, `*.log`, `*.fft`) are routed to `_Build_Temp/` and gitignored.
-   - Reusable Python automation libraries reside in `src/ltspice/` and are packaged with `uv`.
+   - Reusable Python automation libraries reside in `_Tools/ltspice/` and are packaged with `uv`.
 
 2. **SPICE Simulation & Netlist Conventions:**
    - **Ground Reference:** Node 0 (`GND`) must always be explicitly defined and connected.

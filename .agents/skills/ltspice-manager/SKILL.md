@@ -7,7 +7,7 @@ description: >-
 
 # LTspice Simulation Manager Skill
 
-This skill provides end-to-end procedures, CLI commands, and Python automation workflows for running and managing LTspice simulations headlessly, analyzing simulation logs, and extracting key performance metrics.
+This skill provides end-to-end procedures, CLI commands, and Python automation workflows for running and managing LTspice simulations headlessly, analyzing simulation logs (both locally and in `_Build_Temp/`), and extracting key performance metrics.
 
 ---
 
@@ -16,25 +16,21 @@ This skill provides end-to-end procedures, CLI commands, and Python automation w
 ### Running Headless Simulations via CLI
 1. Open PowerShell and run the schematic in batch mode:
    ```powershell
-   & "C:\Users\guill\AppData\Local\Programs\ADI\LTspice\LTspice.exe" -b <path_to_schematic.asc>
+   & "C:\Users\guill\AppData\Local\Programs\ADI\LTspice\LTspice.exe" -b Projets/<Projet>/sim/<schema>.asc
    ```
 2. The simulation executes without opening a GUI window and generates:
-   - `<name>.log`: Simulation log (contains operating point, run duration, solver warnings, and `.meas` results).
-   - `<name>.raw`: Binary waveform data (ignored by Git).
+   - `<schema>.log`: Simulation log (located either in `_Build_Temp/` if redirected, or in `sim/`).
+   - `<schema>.raw`: Binary waveform data (directed to `_Build_Temp/` if configured, and ignored by Git).
 
 ### Extracting Figures of Merit from Log Files
-1. Check the exit status of the run.
-2. Read the `.log` file and search for `Measurement:` blocks:
+1. Use the Python automation runner to execute and parse:
    ```powershell
-   Select-String -Path <path_to_log.log> -Pattern "Measurement:" -Context 0, 1
+   uv run ltspice-run Projets/<Projet>/sim/<schema>.asc
    ```
-3. Or use the Python automation parser:
-   ```powershell
-   uv run python -m ltspice.runner <path_to_schematic.asc>
-   ```
+2. The runner automatically checks `_Build_Temp/` and local paths, outputs execution time, and displays all `.meas` values.
 
 ### Running Parametric Sweeps & Monte Carlo
-1. Define parametric steps in the schematic or testbench:
+1. Define parametric steps in the schematic:
    ```spice
    .step param Rload list 5 10 20
    ; or Monte Carlo sweep:
@@ -49,4 +45,4 @@ This skill provides end-to-end procedures, CLI commands, and Python automation w
 ## 2. Reference Documentation
 - **[Headless CLI Guide](./references/headless-cli-guide.md):** Full list of LTspice CLI arguments (`-b`, `-netlist`, `-ascii`, `-run`).
 - **[Log Analysis & .meas Reference](./references/log-analysis-meas.md):** Parsing syntax for `.meas` results and diagnostic triage.
-
+- **[LTspice Setup Guide](../../../SETUP_LTSPICE.md):** Complete guide to Search Paths and temporary build folder redirection.

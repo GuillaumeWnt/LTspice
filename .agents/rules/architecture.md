@@ -2,76 +2,78 @@
 
 ## 1. Multi-Project Directory Structure
 
-This repository is designed as a structured hub for managing multiple LTspice circuit design and simulation projects, backed by Python automation with `uv`:
+This repository is designed as a structured hub for managing multiple LTspice circuit design and simulation projects, backed by Python automation with `uv` and global LTspice search paths:
 
 ```text
-LTspice/
-├── projects/                      # Independent LTspice circuit projects
-│   ├── <project_name>/            # Individual project directory
-│   │   ├── README.md              # Circuit description, specs, and test definitions
-│   │   ├── schematics/            # LTspice schematic files (*.asc, *.asy, *.plt)
-│   │   ├── models/                # Local SPICE models (*.lib, *.sub, *.cir)
-│   │   ├── scripts/               # Project-specific automation & sweep scripts (Python)
-│   │   └── data/                  # Exported measurements, CSVs, simulation logs (*.log)
+LTspice_Workspace/
+│
+├── _Shared_Lib/                       # BIBLIOTHÈQUE CENTRALE (Commune à tous les projets)
+│   ├── sym/                           # Symboles composants constructeurs (Type: Cell)
+│   │   ├── OpAmps/
+│   │   │   └── OPA1656.asy
+│   │   └── MOSFETs/
+│   │       └── IRFP240.asy
+│   ├── models/                        # Modèles texte SPICE (.lib, .sub, .mod)
+│   │   ├── OPA1656.lib
+│   │   ├── IRFP240.sub
+│   │   └── mes_diodes.mod
+│   └── common_blocks/                 # Sous-schémas réutilisables (Type: Block)
+│       ├── alim_symetrique_labo.asc   # Schéma interne du bloc
+│       └── alim_symetrique_labo.asy   # Symbole du bloc (même nom exact)
+│
+├── _Build_Temp/                       # Fichiers volumineux générés (.raw, .log, .fft) [gitignored]
+│
+├── Projets/                           # TOUS VOS PROJETS INDÉPENDANTS
+│   ├── Ampli_Audio/
+│   │   ├── README.md                  # Spécifications et cas de tests
+│   │   ├── docs/                      # Notes d'application, calculs préliminaires
+│   │   └── sim/                       # Schémas de simulation
+│   │       ├── main_amp.asc           # Schéma principal
+│   │       ├── main_amp.plt           # Tracés de courbes associés
+│   │       ├── blocks/                # Blocs hiérarchiques propres à CE projet (*.asc + *.asy)
+│   │       └── stimuli/               # Fichiers sources (PWL, WAV)
 │   └── ...
-├── shared/                        # Shared assets across multiple projects
-│   ├── models/                    # Verified manufacturer SPICE libraries (*.lib, *.sub)
-│   ├── symbols/                   # Common custom schematic symbols (*.asy)
-│   └── templates/                 # Starter schematic templates (*.asc) with pre-tuned solvers
-├── src/ltspice/                   # Reusable Python automation package (managed with uv)
+│
+├── src/ltspice/                       # Package d'automatisation Python (uv)
 │   ├── __init__.py
-│   ├── runner.py                  # Headless simulation launcher (CLI & bridge)
-│   ├── log_parser.py              # Log file parser (*.log, .meas extraction, error triage)
-│   └── plotting.py                # Engineering waveform plotting utilities
-├── pyproject.toml                 # uv package configuration and dependencies
-├── README.md                      # Global repository documentation & getting started
-├── .agents/                       # Centralized AI intelligence & directives
-└── .mcp.json                      # MCP servers configuration (LTspice bridge, Draw.io, Memory...)
+│   ├── runner.py                      # Exécuteur headless & détection logs _Build_Temp
+│   └── log_parser.py                  # Parser de logs (*.log, .meas extraction)
+├── pyproject.toml                     # Configuration uv et dépendances
+├── SETUP_LTSPICE.md                   # Guide pas-à-pas de configuration de LTspice
+└── .agents/                           # Directives IA, règles, compétences et workflows
 ```
 
 ---
 
-## 2. Subproject Anatomy & Guidelines
+## 2. Rôle du préfixe `_`
 
-Each subproject under `projects/<project_name>/` must be autonomous and self-documenting:
-
-1. **Schematics Directory (`schematics/`):**
-   - Contains the primary testbenches and circuit schematics (`.asc`).
-   - Plot setting files (`.plt`) save custom wave viewers and trace configurations.
-   - Reusable subcircuit blocks are stored alongside their custom symbol files (`.asy`).
-
-2. **Models Directory (`models/`):**
-   - Holds vendor-provided SPICE models (`.lib`, `.sub`, `.cir`, `.mod`) specific to this circuit.
-   - **Relative Paths Rule:** Every `.include` or `.lib` directive placed in a schematic **must use relative paths** (e.g., `.inc ./models/opamp.lib` or `.inc ../../shared/models/transistor.lib`). Never use absolute paths (`C:\...`) to guarantee cross-machine portability.
-
-3. **Scripts Directory (`scripts/`):**
-   - Python automation scripts for parameter sweeps, Monte Carlo analyses, tolerance sweeps, and automated plotting.
-   - Executed using `uv run python scripts/<script_name>.py`.
-
-4. **Data Directory (`data/`):**
-   - Stores parsed `.meas` results, exported tables (CSV, JSON), and simulation log files (`*.log`).
-   - Binary simulation outputs (`*.raw`, `*.fft`) are excluded from Git via `.gitignore`.
-
-5. **Project Documentation (`README.md`):**
-   - Circuit topology description.
-   - Operating specifications (e.g. $V_{\text{in}}$, $V_{\text{out}}$, $I_{\text{load}}$, switching frequency, bandwidth).
-   - List of simulation testbenches (Transient, AC, DC sweep, Monte Carlo) and instructions to execute them.
+- `_Shared_Lib/` et `_Build_Temp/` utilisent un tiret bas initial afin d'être naturellement triés **en tête de liste** par les gestionnaires de fichiers (Windows Explorer, macOS Finder).
+- Cette disposition met en valeur immédiate le dossier principal `Projets/` tout en séparant nettement les composants partagés et les fichiers de calcul éphémères.
 
 ---
 
-## 3. Shared Libraries Management (`shared/`)
+## 3. Configuration des Chemins de Recherche (Search Paths)
 
-- Common component models (diodes, MOSFETs, BJT arrays, passives parasitics) that are reused across several circuits should be placed in `shared/models/`.
-- New models added to `shared/` should be documented with their source (e.g., manufacturer name, application note number, download link).
-- Schematic templates with standard `.tran`, `.ac`, or `.step` setups are maintained in `shared/templates/` for rapid project prototyping.
+Plutôt que d'utiliser des chemins absolus dans chaque schéma, LTspice doit être configuré de manière globale (voir [`SETUP_LTSPICE.md`](../../SETUP_LTSPICE.md)) :
+1. **Symbol Search Path (F2) :**
+   - Pointé vers `_Shared_Lib/sym` (et ses sous-dossiers de familles) ainsi que `_Shared_Lib/common_blocks`.
+2. **Library Search Path :**
+   - Pointé vers `_Shared_Lib/models` ET `_Shared_Lib/common_blocks`.
+   - **Règle essentielle :** `common_blocks` doit être déclaré dans les deux chemins pour que LTspice charge à la fois le symbole graphique `.asy` et le schéma de simulation `.asc`.
+3. **Sorties de simulation :**
+   - Redirigées vers `_Build_Temp/` (Settings → Waveforms) pour éviter d'encombrer les dossiers de projet.
 
 ---
 
-## 4. Python Package (`src/ltspice/`) & uv Environment
+## 4. Les 3 Cas de Création de Composants
 
-- The root `pyproject.toml` defines the project environment.
-- Python tools in `src/ltspice/` provide shared helpers for:
-  - Batch execution of LTspice in headless mode (`LTspice.exe -b`).
-  - Parsing simulation logs (`.log`) to extract `.meas` values into pandas DataFrames.
-  - Generating publication-quality waveform figures with Matplotlib.
-- New dependencies are added via `uv add <package>` (e.g., `uv add numpy scipy matplotlib pandas`).
+1. **Cas 1 — Modèle simple `.MODEL` :** Pas de fichier `.asy`. Utiliser un symbole standard LTspice, renseigner `Value` et inclure `.lib fichier.mod`.
+2. **Cas 2 — Composant constructeur `.SUBCKT` :** Modèle texte dans `_Shared_Lib/models/`, symbole dans `_Shared_Lib/sym/` avec `Symbol Type: Cell`, `Prefix: X`, `Value: <Nom_SUBCKT>`, `ModelFile: <fichier.lib>`, et `Netlist Order` des broches calqué sur l'ordre de la directive `.SUBCKT`.
+3. **Cas 3 — Bloc hiérarchique graphique :** Paire `nom.asc` + `nom.asy` dans `_Shared_Lib/common_blocks/` ou localement dans `Projets/<Projet>/sim/blocks/`. `Symbol Type: Block`, tous les attributs vides, broches avec labels identiques aux ports F4.
+
+---
+
+## 5. Outillage Python (`src/ltspice/`)
+
+- Géré exclusivement avec `uv`.
+- [`runner.py`](../../src/ltspice/runner.py) recherche automatiquement les fichiers `.log` générés soit localement à côté du `.asc`, soit dans `_Build_Temp/` si la redirection est activée.

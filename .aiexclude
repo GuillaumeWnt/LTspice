@@ -20,6 +20,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# Heavy LTspice Simulation Output Directory
+_Build_Temp/
+Build_Temp/
+
 # Heavy LTspice Simulation Binary Artifacts
 # Note: *.log, *.net, *.asc, *.asy, and *.plt are purposely ALLOWED
 # so the AI can inspect schematics, netlists, plot configs, and diagnose simulation logs (*.log)!

@@ -13,6 +13,12 @@ dist/
 wheels/
 *.egg-info/
 
+# LTspice simulation output directory (raw data & temporary files)
+_Build_Temp/*
+!_Build_Temp/.gitkeep
+Build_Temp/*
+!Build_Temp/.gitkeep
+
 # LTspice simulation raw data (binary files, potentially very large)
 *.raw
 *.op.raw

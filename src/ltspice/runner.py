@@ -1,7 +1,7 @@
 """LTspice headless batch simulation runner.
 
 Executes LTspice schematics via command-line interface, monitors execution,
-and parses the generated simulation logs.
+and parses the generated simulation logs (supporting local or redirected _Build_Temp outputs).
 """
 
 from __future__ import annotations
@@ -37,10 +37,42 @@ def find_ltspice_executable() -> Path:
     )
 
 
+def resolve_log_path(asc_path: Path, build_temp: Path | None = None) -> Path:
+    """Determine the most likely path of the generated .log file.
+
+    Checks redirected build directories (_Build_Temp, Build_Temp) as well as the
+    schematic's local directory.
+    """
+    candidates: list[Path] = []
+
+    # 1. Explicit build_temp argument or environment variable
+    if build_temp:
+        candidates.append(build_temp / asc_path.with_suffix(".log").name)
+    env_build_temp = os.environ.get("LTSPICE_BUILD_TEMP")
+    if env_build_temp:
+        candidates.append(Path(env_build_temp) / asc_path.with_suffix(".log").name)
+
+    # 2. Workspace root _Build_Temp or Build_Temp
+    workspace_root = Path.cwd()
+    candidates.append(workspace_root / "_Build_Temp" / asc_path.with_suffix(".log").name)
+    candidates.append(workspace_root / "Build_Temp" / asc_path.with_suffix(".log").name)
+
+    # 3. Local schematic directory
+    candidates.append(asc_path.with_suffix(".log"))
+
+    # Return the first candidate that exists, or fall back to local
+    for cand in candidates:
+        if cand.exists():
+            return cand
+
+    return asc_path.with_suffix(".log")
+
+
 def run_simulation(
     schematic_path: Path | str,
     executable: Path | None = None,
     timeout: float | None = 300.0,
+    build_temp: Path | None = None,
 ) -> SimulationLogResult:
     """Execute a schematic headlessly in batch mode and return parsed log results."""
     asc_path = Path(schematic_path).resolve()
@@ -48,14 +80,18 @@ def run_simulation(
         raise FileNotFoundError(f"Schematic not found: {asc_path}")
 
     exe = executable or find_ltspice_executable()
-    log_path = asc_path.with_suffix(".log")
 
-    # Remove stale log file if present
-    if log_path.exists():
-        try:
-            log_path.unlink()
-        except OSError:
-            pass
+    # Pre-clean known log locations to ensure we don't read stale logs
+    for candidate in [
+        asc_path.with_suffix(".log"),
+        Path.cwd() / "_Build_Temp" / asc_path.with_suffix(".log").name,
+        Path.cwd() / "Build_Temp" / asc_path.with_suffix(".log").name,
+    ]:
+        if candidate.exists():
+            try:
+                candidate.unlink()
+            except OSError:
+                pass
 
     cmd = [str(exe), "-b", str(asc_path)]
 
@@ -67,14 +103,17 @@ def run_simulation(
             stderr=subprocess.PIPE,
             timeout=timeout,
         )
-    except subprocess.TimeoutExpired as exc:
+    except subprocess.TimeoutExpired:
+        target_log = resolve_log_path(asc_path, build_temp=build_temp)
         return SimulationLogResult(
-            filepath=log_path,
+            filepath=target_log,
             success=False,
             errors=[f"Simulation timed out after {timeout} seconds"],
         )
 
-    # Parse resulting log
+    # Locate and parse resulting log
+    log_path = resolve_log_path(asc_path, build_temp=build_temp)
+
     if log_path.exists():
         result = parse_log(log_path)
         if proc.returncode != 0 and result.success:
@@ -85,14 +124,14 @@ def run_simulation(
     return SimulationLogResult(
         filepath=log_path,
         success=False,
-        errors=[f"Simulation finished but no log file was generated at {log_path}"],
+        errors=[f"Simulation finished but no log file was found at {log_path} (checked local and _Build_Temp)"],
     )
 
 
 def main() -> None:
     """CLI entry point for running a schematic headlessly."""
     if len(sys.argv) < 2:
-        print("Usage: uv run python -m ltspice.runner <path_to_schematic.asc>")
+        print("Usage: uv run ltspice-run <path_to_schematic.asc>")
         sys.exit(1)
 
     target_path = Path(sys.argv[1])
@@ -120,4 +159,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,0 +1,8 @@
+* Sub-Bloc Mesure Courant (ACS770 + Shunt Kelvin 2mOhm + Diviseur V_cond)
+.subckt sub_mesure_courant LOOP_PLUS LOOP_MINUS GNDD V_CPT_HALL SENS_I V_COND
+R_SHUNT LOOP_PLUS LOOP_MINUS 0.002
+B_HALL V_CPT_HALL GNDD V=0.5 + 0.08*I(R_SHUNT)
+B_SHUNT SENS_I GNDD V=V(LOOP_PLUS,LOOP_MINUS)
+B_VCOND V_COND GNDD V=V(LOOP_PLUS,GNDD)/43.2
+.ends sub_mesure_courant
+

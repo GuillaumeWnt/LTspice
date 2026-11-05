@@ -1,0 +1,8 @@
+* Sub-Bloc Alim 5V (L7805 + C14/C3 + R1)
+.subckt sub_alim_5v VIN_15V GND VOUT_5V
+C14 VIN_15V GND 10u
+B1 VOUT_5V GND V=limit(V(VIN_15V,GND)-1.5, 0, 5)
+C3 VOUT_5V GND 10u
+R1 VOUT_5V GND 1k
+.ends sub_alim_5v
+

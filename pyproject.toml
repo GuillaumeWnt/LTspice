@@ -7,12 +7,11 @@ authors = [
     { name = "GuillaumeWnt", email = "guillaume.winant@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = [
-    "pypdf>=6.21.4",
-]
+dependencies = []
 
 [project.scripts]
 ltspice-run = "ltspice.runner:main"
+ltspice-convert = "ltspice.net_to_asc:main"
 
 [build-system]
 requires = ["hatchling"]

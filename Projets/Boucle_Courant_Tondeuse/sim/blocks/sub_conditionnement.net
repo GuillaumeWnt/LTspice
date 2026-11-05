@@ -1,0 +1,7 @@
+* Sub-Bloc Conditionnement AOP MCP6004 (Soustraction + Comparateur de Seuil)
+.subckt sub_conditionnement V_CPT_HALL SENS_I GND I_MAX_INT I_HALL_ADC I_SHUNT_ADC
+B_DIFF_HALL I_HALL_ADC GND V=limit(V(V_CPT_HALL,GND)-0.5, 0, 5)
+B_GAIN_SHUNT I_SHUNT_ADC GND V=limit(V(SENS_I,GND)*50, 0, 5)
+B_COMP I_MAX_INT GND V=if(V(I_HALL_ADC,GND) > 1.2, 0, 5)
+.ends sub_conditionnement
+

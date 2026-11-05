@@ -1,0 +1,6 @@
+* Sub-Bloc Logique de Securite (Porte ET 74HCT08 + Optocoupleur 4N25)
+.subckt sub_logique_securite PWM_MCU I_MAX_INT VCC_15V GND PWM_OPTO
+B_AND PWM_GATED GND V=if((V(PWM_MCU,GND)>2.5)&(V(I_MAX_INT,GND)>2.5), 5, 0)
+B_OPTO PWM_OPTO GND V=if(V(PWM_GATED,GND)>2.5, V(VCC_15V,GND), 0)
+.ends sub_logique_securite
+

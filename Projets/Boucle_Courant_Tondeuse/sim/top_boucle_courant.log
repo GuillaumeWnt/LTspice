@@ -1,13 +1,13 @@
 LTspice 26.1.1 for Windows
 Circuit: C:\Users\guill\dev\perso\LTspice\Projets\Boucle_Courant_Tondeuse\sim\top_boucle_courant.net
-Start Time: Fri Nov  6 00:33:22 2026
+Start Time: Fri Nov  6 00:43:14 2026
 solver = Normal
 Maximum thread count: 20
 tnom = 27
 temp = 27
 method = trap
 Direct Newton iteration succeeded in finding operating point.
-Total elapsed time: 0.077 seconds.
+Total elapsed time: 0.048 seconds.
 Total iterations: 4269
 
 Files loaded:

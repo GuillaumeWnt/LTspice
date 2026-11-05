@@ -1,0 +1,9 @@
+* Bloc Commande - Carte Basse Tension / Traitement du Signal
+.subckt bloc_commande +15V_IN PWM_MCU_IN V_CPT_HALL SENS_I +5V_OUT PWM_OPTO_OUT I_MAX_INT GND
+C14 +15V_IN GND 10u
+B_REG5 +5V_OUT GND V=limit(V(+15V_IN,GND)-1.5, 0, 5)
+C3 +5V_OUT GND 10u
+B_OPTO PWM_OPTO_OUT GND V=if((V(PWM_MCU_IN,GND)>2.5)&(V(I_MAX_INT,GND)>2.5), V(+15V_IN,GND), 0)
+B_COMP I_MAX_INT GND V=if(V(V_CPT_HALL,GND) > 1.2, 0, 5)
+.ends bloc_commande
+

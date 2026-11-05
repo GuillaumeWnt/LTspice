@@ -1,17 +1,18 @@
 LTspice 26.1.1 for Windows
 Circuit: C:\Users\guill\dev\perso\LTspice\Projets\Boucle_Courant_Tondeuse\sim\tests\test_driver_igbt.net
-Start Time: Fri Nov  6 00:43:15 2026
+Start Time: Fri Nov  6 00:53:21 2026
 solver = Normal
 Maximum thread count: 20
 tnom = 27
 temp = 27
 method = trap
 Direct Newton iteration succeeded in finding operating point.
-Total elapsed time: 0.062 seconds.
-Total iterations: 3351
+Total elapsed time: 0.143 seconds.
+Total iterations: 3147
 
 Files loaded:
 C:\Users\guill\dev\perso\LTspice\Projets\Boucle_Courant_Tondeuse\sim\tests\test_driver_igbt.net
+C:\Users\guill\AppData\Local\LTspice\lib\cmp\standard.dio
 
-i_pulse_max: MAX(I(L_TEST))=9.9562664032 FROM 0 TO 0.003
+i_pulse_max: MAX(I(L_TEST))=3.7152251025e-05 FROM 0 TO 0.003
 v15_val: V(v15_out)=15 at 0.002

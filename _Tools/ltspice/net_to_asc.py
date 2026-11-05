@@ -32,6 +32,9 @@ class NetlistContent:
     directives: list[str] = field(default_factory=list)
     components: list[ComponentLine] = field(default_factory=list)
     subcircuits: list[str] = field(default_factory=list)
+    port_pins: set[str] = field(default_factory=set)
+    is_subckt_file: bool = False
+    subckt_name: str = ""
 
 
 DEFAULT_SYM_DIRS = [
@@ -56,12 +59,39 @@ def find_symbol_file(symbol_name: str, search_dirs: list[Path] | None = None) ->
         direct = d / clean_name
         if direct.is_file():
             return direct
-        # Recursive check inside directory
         for match in d.rglob(Path(clean_name).name):
             if match.is_file():
                 return match
 
     return None
+
+
+def resolve_symbol_reference(
+    symbol_name: str, netlist_dir: Path, search_dirs: list[Path] | None = None
+) -> tuple[str, Path | None]:
+    """Resolve the exact symbol name or relative path to put in the SYMBOL line."""
+    asy_path = find_symbol_file(symbol_name, search_dirs)
+    if not asy_path:
+        return symbol_name, None
+
+    for std in [
+        Path(r"C:\Users\guill\AppData\Local\LTspice\lib\sym"),
+        Path(r"C:\Users\guill\AppData\Local\Programs\ADI\LTspice\lib\sym"),
+        Path.cwd() / "_Shared_Lib" / "sym",
+        Path.cwd() / "_Shared_Lib" / "common_blocks",
+    ]:
+        try:
+            asy_path.relative_to(std)
+            rel = os.path.relpath(asy_path.with_suffix(""), std)
+            return rel.replace("/", "\\"), asy_path
+        except ValueError:
+            pass
+
+    try:
+        rel_local = os.path.relpath(asy_path.with_suffix(""), netlist_dir)
+        return rel_local.replace("/", "\\"), asy_path
+    except ValueError:
+        return asy_path.stem, asy_path
 
 
 def get_symbol_pin_offsets(symbol_name: str, search_dirs: list[Path] | None = None) -> list[tuple[int, int]]:
@@ -129,6 +159,29 @@ def parse_netlist_file(netlist_path: Path) -> NetlistContent:
         return content
 
     content.title = raw_lines[0].lstrip("*; ").strip()
+
+    top_comp_count = 0
+    subckt_comp_count = 0
+    in_sub = False
+    for l in raw_lines:
+        s = l.strip()
+        if not s or s.startswith("*") or s.startswith(";"):
+            continue
+        if s.lower().startswith(".subckt"):
+            in_sub = True
+            continue
+        if s.lower().startswith(".ends"):
+            in_sub = False
+            continue
+        if not s.startswith("."):
+            if in_sub:
+                subckt_comp_count += 1
+            else:
+                top_comp_count += 1
+
+    is_pure_subckt = top_comp_count == 0 and subckt_comp_count > 0
+    content.is_subckt_file = is_pure_subckt
+
     in_subckt = False
     current_subckt_lines: list[str] = []
 
@@ -139,15 +192,20 @@ def parse_netlist_file(netlist_path: Path) -> NetlistContent:
 
         if line.lower().startswith(".subckt"):
             in_subckt = True
+            tokens = line.split()
+            if is_pure_subckt and len(tokens) >= 2:
+                content.subckt_name = tokens[1]
+                content.port_pins = set(tokens[2:])
             current_subckt_lines = [line]
             continue
         elif line.lower().startswith(".ends"):
             in_subckt = False
             current_subckt_lines.append(line)
-            content.subcircuits.append("\n".join(current_subckt_lines))
+            if not is_pure_subckt:
+                content.subcircuits.append("\n".join(current_subckt_lines))
             continue
 
-        if in_subckt:
+        if in_subckt and not is_pure_subckt:
             current_subckt_lines.append(line)
             continue
 
@@ -229,11 +287,26 @@ def netlist_to_asc(netlist_path: Path, output_asc_path: Path | None = None) -> P
         lines.append(f"TEXT {text_x} {text_y} Left 2 !{d}")
         text_y += 32
 
+    # Check for subcircuits: do NOT emit if matching .asc or .asy exists as a hierarchical block
     for sub in parsed.subcircuits:
-        for sub_line in sub.splitlines():
-            lines.append(f"TEXT {text_x} {text_y} Left 2 !{sub_line}")
-            text_y += 24
-        text_y += 16
+        sub_name = ""
+        first_line = sub.splitlines()[0].strip()
+        tokens = first_line.split()
+        if len(tokens) >= 2:
+            sub_name = tokens[1]
+
+        has_block_file = False
+        if sub_name:
+            for d in project_search_dirs:
+                if (d / f"{sub_name}.asc").is_file() or (d / f"{sub_name}.asy").is_file():
+                    has_block_file = True
+                    break
+
+        if not has_block_file:
+            for sub_line in sub.splitlines():
+                lines.append(f"TEXT {text_x} {text_y} Left 2 !{sub_line}")
+                text_y += 24
+            text_y += 16
 
     # 2. Grid Placement Parameters
     start_x = 320
@@ -258,10 +331,11 @@ def netlist_to_asc(netlist_path: Path, output_asc_path: Path | None = None) -> P
 
     # 3. Draw components and standardized rung connections
     for comp in parsed.components:
-        sym_name = comp.value if comp.component_type == "X" else symbol_map.get(comp.component_type, "res")
-        pin_offsets = get_symbol_pin_offsets(sym_name, project_search_dirs)
+        raw_sym = comp.value if comp.component_type == "X" else symbol_map.get(comp.component_type, "res")
+        sym_ref, asy_file = resolve_symbol_reference(raw_sym, netlist_path.parent, project_search_dirs)
+        pin_offsets = get_symbol_pin_offsets(raw_sym, project_search_dirs)
 
-        lines.append(f"SYMBOL {sym_name} {current_x} {current_y} R0")
+        lines.append(f"SYMBOL {sym_ref} {current_x} {current_y} R0")
         lines.append("WINDOW 0 24 24 Left 2")
         lines.append("WINDOW 3 24 56 Left 2")
         lines.append(f"SYMATTR InstName {comp.inst_name}")
@@ -285,6 +359,8 @@ def netlist_to_asc(netlist_path: Path, output_asc_path: Path | None = None) -> P
 
             flag_label = "0" if node in ("0", "GND", "gnd") else node
             lines.append(f"FLAG {flag_x} {flag_y} {flag_label}")
+            if parsed.is_subckt_file and node.upper() in [p.upper() for p in parsed.port_pins]:
+                lines.append(f"IOPIN {flag_x} {flag_y} BiDir")
 
         current_y += y_spacing
         if current_y > max_y:

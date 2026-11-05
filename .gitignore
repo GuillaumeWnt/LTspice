@@ -1,0 +1,34 @@
+# Python virtual environment & cache (uv)
+.venv/
+__pycache__/
+*.py[oc]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build & packaging artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+
+# LTspice simulation raw data (binary files, potentially very large)
+*.raw
+*.op.raw
+*.fft
+
+# LTspice temporary and backup files
+*.bak
+*.tmp
+*.swp
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Secrets & Local configurations
+.env
+.env.*
+*.local.json

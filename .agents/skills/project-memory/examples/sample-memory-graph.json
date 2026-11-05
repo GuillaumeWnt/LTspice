@@ -1,0 +1,59 @@
+{
+  "entities": [
+    {
+      "name": "ThesisProject",
+      "entityType": "DocumentConfig",
+      "observations": [
+        "Class: ClasseGuillaume.cls",
+        "Engine: LuaLaTeX",
+        "Primary Font: Calibri (local TTF)",
+        "Review Mode: Active with \\todoH notes in margins"
+      ]
+    },
+    {
+      "name": "GeometrieWord",
+      "entityType": "GeometryPreset",
+      "observations": [
+        "Margins: 2.5cm all sides",
+        "headheight=26pt, footskip=30pt",
+        "Compatible with scrlayer-scrpage without height warnings"
+      ]
+    },
+    {
+      "name": "Term_CNN",
+      "entityType": "GlossaryTerm",
+      "observations": [
+        "Full expansion: Convolutional Neural Network",
+        "Defined in Chapter 1, Section 2"
+      ]
+    },
+    {
+      "name": "smith2024deep",
+      "entityType": "LiteratureEntity",
+      "observations": [
+        "Authors: John Smith, Jane Doe",
+        "Title: Deep Learning for Technical Document Analysis",
+        "DOI: 10.1016/j.jct.2024.01.015",
+        "Used as primary benchmark in Chapter 1"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "ThesisProject",
+      "relationType": "uses_geometry",
+      "to": "GeometrieWord"
+    },
+    {
+      "from": "ThesisProject",
+      "relationType": "references",
+      "to": "smith2024deep"
+    },
+    {
+      "from": "ThesisProject",
+      "relationType": "defines_term",
+      "to": "Term_CNN"
+    }
+  ]
+}
+

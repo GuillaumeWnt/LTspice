@@ -1,0 +1,44 @@
+# ==========================================
+# AI Exclusion Rules (Google & Gemini Tools)
+# ==========================================
+
+# Secrets & Environment variables
+.env
+.env.*
+*.key
+*.pem
+*.secret
+*.local.json
+
+# Python Virtualenv & Cache (uv)
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Heavy LTspice Simulation Binary Artifacts
+# Note: *.log, *.net, *.asc, *.asy, and *.plt are purposely ALLOWED
+# so the AI can inspect schematics, netlists, plot configs, and diagnose simulation logs (*.log)!
+*.raw
+*.op.raw
+*.fft
+
+# LTspice Temporary & Backup Files
+*.bak
+*.tmp
+*.swp
+*~
+
+# Python Build & Distribution Artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+
+# OS Artifacts
+.DS_Store
+Thumbs.db

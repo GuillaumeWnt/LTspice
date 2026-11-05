@@ -1,0 +1,88 @@
+# SPICE & Python Coding Style Guide
+
+## 1. SPICE Schematics & Netlist Conventions
+
+### Ground Reference & Connectivity
+- **Explicit Ground:** The circuit ground node `0` (`GND`) must always be connected and clearly placed. Never leave subcircuits floating without a DC reference to ground.
+- **Node Naming:**
+  - Label all primary functional nodes explicitly: `VIN`, `VOUT`, `SW`, `FB`, `GATE`, `COMP`, `CLK`, `SENSE_P`, `SENSE_N`.
+  - Avoid referencing raw auto-generated node numbers (`N001`, `N007`) in simulation commands, as node numbers change whenever components or wires are edited.
+
+### Units and SI Multipliers Pitfall
+SPICE syntax is case-insensitive and has strict multiplier rules:
+- **`m` or `M` = milli ($10^{-3}$)**: Writing `10M` for a resistor results in **10 milliohms**, not 10 megohms!
+- **`Meg` or `meg` = mega ($10^{6}$)**: Always write `10Meg` for 10 megohms.
+- Multiplier summary:
+  - `f` = $10^{-15}$ (femto)
+  - `p` = $10^{-12}$ (pico)
+  - `n` = $10^{-9}$ (nano)
+  - `u` = $10^{-6}$ (micro)
+  - `m` = $10^{-3}$ (milli)
+  - `k` = $10^{3}$ (kilo)
+  - `Meg` = $10^{6}$ (mega)
+  - `g` = $10^{9}$ (giga)
+  - `t` = $10^{12}$ (tera)
+
+### Directives Formatting
+- Place simulation directives (`.tran`, `.ac`, `.op`, `.dc`), includes (`.inc`, `.lib`), and measurements (`.meas`) in an organized cluster on the schematic canvas.
+- Add descriptive comment blocks (using `;` or `*`) explaining simulation intent, component tolerances, and operating assumptions.
+
+---
+
+## 2. Measurement (`.meas`) Conventions
+
+Directives with `.meas` automate figure-of-merit extraction into the simulation log:
+- **Average & RMS:**
+  ```spice
+  .meas TRAN Vout_avg AVG V(VOUT) FROM 2m TO 3m
+  .meas TRAN Iin_rms RMS I(V1) FROM 2m TO 3m
+  ```
+- **Peak-to-Peak (Ripple):**
+  ```spice
+  .meas TRAN Vout_ripple PP V(VOUT) FROM 2.5m TO 3m
+  ```
+- **Events & Timing:**
+  ```spice
+  .meas TRAN Trise TRIG V(VOUT)=0.33*3.3 RISE=1 TARG V(VOUT)=0.9*3.3 RISE=1
+  ```
+- **Calculated Expressions:**
+  ```spice
+  .meas TRAN Efficiency PARAM -Vout_avg*Iout_avg / (Vin_avg*Iin_avg) * 100
+  ```
+
+---
+
+## 3. Python Automation Style (with `uv`)
+
+All Python automation scripts within the repository must adhere to the following standards:
+
+### Language Version & Type Annotations
+- Target **Python >= 3.12**.
+- Use strict type annotations everywhere (`def parse_log(path: Path) -> dict[str, float]:`).
+- Organize imports according to PEP 8: standard library, third-party, local modules.
+
+### Formatting & Linting
+- Format code using **ruff**:
+  ```powershell
+  uv run ruff format .
+  uv run ruff check .
+  ```
+
+### Waveform Plotting Standards (Matplotlib)
+- **Labels & Units:** Always provide explicit axis labels with units in brackets:
+  - `ax.set_xlabel("Time [ms]")`
+  - `ax.set_ylabel("Inductor Current [A]")`
+- **Engineering Formatters:** Use `matplotlib.ticker.EngFormatter` for clean SI prefix scaling.
+- **Grids & Readability:** Enable a subtle two-tier grid:
+  ```python
+  ax.grid(True, which="major", linestyle="-", alpha=0.6)
+  ax.grid(True, which="minor", linestyle=":", alpha=0.3)
+  ax.minorticks_on()
+  ```
+- **Reproducibility:** Save figures as high-resolution PNGs (300 DPI) or vector SVGs/PDFs for documentation.
+
+---
+
+## 4. Documentation & Markdown
+- Use **semantic line breaks** (one sentence per line) in markdown files and READMEs.
+- Keep documentation modular and versioned with the circuits.

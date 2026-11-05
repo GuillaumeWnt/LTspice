@@ -16,6 +16,10 @@
 
 2. **SPICE Simulation & Netlist Conventions:**
    - **Ground Reference:** Node 0 (`GND`) must always be explicitly defined and connected.
+   - **AI Circuit Modeling Standard (Strict No-.asc Rule):**
+     - **Interdiction absolue pour l'IA de générer des fichiers `.asc` à partir de zéro :** Les modèles de langage gèrent mal la géométrie 2D (coordonnées des broches, tracé des fils, faux contacts invisibles `NC_01`).
+     - **Toutes les modélisations et modifications de circuits par l'IA doivent obligatoirement être réalisées sous forme de Netlists SPICE pures (`.net` ou `.cir`).**
+     - Les fichiers de schémas graphiques `.asc` sont réservés à l'humain dans l'interface LTspice ou à des outils de conversion déterministes.
    - **SPICE Units & Notation Pitfall:**
      - Always remember: `1M` or `1m` denotes **milli** ($10^{-3}$).
      - **Mega** ($10^6$) must strictly be written `1Meg` or `1meg`.

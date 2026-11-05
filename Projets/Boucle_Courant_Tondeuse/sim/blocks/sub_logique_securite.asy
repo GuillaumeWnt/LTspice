@@ -1,0 +1,19 @@
+Version 4
+SymbolType Block
+RECTANGLE Normal -64 -64 64 64
+TEXT 0 -50 Center 2 Sub_Logique_Securite
+PIN -64 -32 NONE 0
+PINATTR PinName PWM_MCU
+PINATTR SpiceOrder 1
+PIN -64 0 NONE 0
+PINATTR PinName I_MAX_INT
+PINATTR SpiceOrder 2
+PIN -64 32 NONE 0
+PINATTR PinName VCC_15V
+PINATTR SpiceOrder 3
+PIN 64 -32 NONE 0
+PINATTR PinName PWM_OPTO
+PINATTR SpiceOrder 4
+PIN 64 32 NONE 0
+PINATTR PinName GND
+PINATTR SpiceOrder 5

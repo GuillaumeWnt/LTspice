@@ -54,8 +54,8 @@ def parse_log(log_path: Path | str) -> SimulationLogResult:
     # Format typically:
     # Measurement: vout_avg
     #   step 1:  3.30124  FROM 2e-03 TO 3e-03
-    # Or single-step without "step":
-    # Measurement: vout_avg = 3.30124 ...
+    # Or LTspice 24/26 format:
+    # i_loop_max: MAX(I(L_LOOP))=5.69998979568 FROM 0 TO 0.01
     meas_blocks = re.findall(
         r"Measurement:\s*(\w+)\s*\n((?:\s*(?:step\s*\d+:|[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?).*?(?:\n|$))*)",
         content,
@@ -84,6 +84,17 @@ def parse_log(log_path: Path | str) -> SimulationLogResult:
             result.measurements[key] = values[0]
         elif len(values) > 1:
             result.measurements[key] = values
+
+    # Also extract direct line measurements: name: ... = <val> [FROM/at ...]
+    for line in content.splitlines():
+        direct_match = re.match(r"^([a-zA-Z0-9_]+):\s+.*?=\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)", line)
+        if direct_match:
+            k = direct_match.group(1).lower()
+            if k not in result.measurements:
+                try:
+                    result.measurements[k] = float(direct_match.group(2))
+                except ValueError:
+                    pass
 
     # 4. Extract total elapsed time
     time_match = re.search(r"Total elapsed time:\s*([0-9]*\.?[0-9]+)\s*seconds", content, re.IGNORECASE)

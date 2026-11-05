@@ -1,0 +1,14 @@
+Version 4
+SymbolType Block
+RECTANGLE Normal -48 -48 48 48
+TEXT 0 -36 Center 2 Sub_Alim_5V
+PIN -48 -16 NONE 0
+PINATTR PinName VIN_15V
+PINATTR SpiceOrder 1
+PIN -48 16 NONE 0
+PINATTR PinName GND
+PINATTR SpiceOrder 2
+PIN 48 0 NONE 0
+PINATTR PinName VOUT_5V
+PINATTR SpiceOrder 3
+
